@@ -40,7 +40,14 @@ This project was built for:
 
 ## 📸 Screenshots
 
-<img width="1839" height="883" alt="Screenshot 2026-03-29 132120" src="https://github.com/user-attachments/assets/e057d3a0-4541-4728-88e9-3a14b0546308" />
+<img width="1885" height="940" alt="Screenshot 2026-03-29 132828" src="https://github.com/user-attachments/assets/67e582e6-5676-4314-b1af-056ad75cfe9e" />
+<img width="1797" height="783" alt="Screenshot 2026-03-29 132031" src="https://github.com/user-attachments/assets/a72ceac2-2c55-4322-9f8a-6a20c7f3b6ae" />
+<img width="1881" height="957" alt="Screenshot 2026-03-29 132048" src="https://github.com/user-attachments/assets/0605c925-157c-434a-92e2-53cff9521411" />
+<img width="1839" height="883" alt="Screenshot 2026-03-29 132120" src="https://github.com/user-attachments/assets/3726610e-fddf-4ca4-b27b-7ad2b6103b62" />
+
+
+
+
 
 
 ---
@@ -313,19 +320,12 @@ This system demonstrates:
 - Add price alert email notifications
 - Build a React/Next.js frontend instead of Flask templates
 
----
-
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
 
 ---
+⭐ Support
 
-## 👨‍💻 Author
+If you like this project:
 
-**Final Year Project — Machine Learning**
-
-Built with: Python · Flask · Scikit-learn · Pandas · Chart.js · Matplotlib · Seaborn
-=======
-# Air_Fare_Prediction
->>>>>>> 9e80d59146e272e1a3480a0528f39eec85e98712
+✔ Star this repository
+✔ Share with others
+✔ Connect for collaboration

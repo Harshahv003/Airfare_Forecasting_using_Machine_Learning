@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ✈️ FlightFare AI — Airfare Price Prediction System
 
 > **Machine Learning · Flask · Gradient Boosting · Real Indian Flight Data**
@@ -330,3 +331,6 @@ MIT License — see [LICENSE](LICENSE) for details.
 **Final Year Project — Machine Learning**
 
 Built with: Python · Flask · Scikit-learn · Pandas · Chart.js · Matplotlib · Seaborn
+=======
+# Air_Fare_Prediction
+>>>>>>> 9e80d59146e272e1a3480a0528f39eec85e98712

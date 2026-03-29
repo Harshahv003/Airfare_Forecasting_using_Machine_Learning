@@ -40,13 +40,8 @@ This project was built for:
 
 ## 📸 Screenshots
 
-| Prediction Form | EDA Visualizations |
-|---|---|
-| *(Add screenshot here)* | *(Add screenshot here)* |
+<img width="1839" height="883" alt="Screenshot 2026-03-29 132120" src="https://github.com/user-attachments/assets/e057d3a0-4541-4728-88e9-3a14b0546308" />
 
-| Price Trend Chart | Model Comparison |
-|---|---|
-| *(Add screenshot here)* | *(Add screenshot here)* |
 
 ---
 

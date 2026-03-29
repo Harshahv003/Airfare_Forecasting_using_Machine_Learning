@@ -1,0 +1,6 @@
+Collecting numpy
+  Downloading numpy-2.4.3-cp314-cp314-win_amd64.whl.metadata (6.6 kB)
+Downloading numpy-2.4.3-cp314-cp314-win_amd64.whl (12.4 MB)
+   ----------------- 12.4/12.4 MB 8.3 MB/s  0:00:01
+Installing collected packages: numpy
+Successfully installed numpy-2.4.3

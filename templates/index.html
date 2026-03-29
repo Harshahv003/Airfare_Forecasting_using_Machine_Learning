@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlightFare AI — Airfare Price Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+
+<div class="bg-mesh" aria-hidden="true"></div>
+<div class="bg-blob b1" aria-hidden="true"></div>
+<div class="bg-blob b2" aria-hidden="true"></div>
+
+<!-- ══════════════════════════ HEADER ══════════════════════════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">✈</div>
+      <div class="brand-text">
+        <span class="brand-name">FlightFare AI</span>
+        <span class="brand-tag">ML-Powered Price Predictor</span>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-chip">
+        <span class="stat-dot"></span>
+        Model: <strong>{{ metrics.get('name','Gradient Boosting') }}</strong>
+      </div>
+      <div class="stat-chip accent">
+        R² Score: <strong>{{ metrics.get('r2', 0.84) }}</strong>
+      </div>
+      <div class="stat-chip">
+        MAE: <strong>₹{{ "{:,.0f}".format(metrics.get('mae', 1213)) }}</strong>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════ HERO ══════════════════════════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">🧠 Machine Learning · Gradient Boosting · 10,000+ Flights Trained</div>
+    <h1 class="hero-title">Predict Any Flight Price<br/><span class="gradient-text">Instantly with AI</span></h1>
+    <p class="hero-sub">Enter your route details and get an accurate fare estimate powered by a model trained on real Indian flight data.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════ MAIN LAYOUT ══════════════════════════ -->
+<main class="main-layout">
+
+  <!-- ── LEFT: Prediction Form ─────────────────────────────── -->
+  <section class="card predict-card">
+    <div class="card-header">
+      <h2>Flight Details</h2>
+      <span class="card-badge">Step 1 of 1</span>
+    </div>
+
+    <form id="predictForm" novalidate>
+
+      <!-- Row 1: Airline -->
+      <div class="field-group full">
+        <label for="airline">Airline</label>
+        <div class="select-wrap">
+          <select id="airline" name="airline" required>
+            <option value="">— Select Airline —</option>
+            {% for a in airlines %}
+            <option value="{{ a }}">{{ a }}</option>
+            {% endfor %}
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <span class="field-error" id="err-airline"></span>
+      </div>
+
+      <!-- Row 2: Source + Destination -->
+      <div class="field-row">
+        <div class="field-group">
+          <label for="source">From (Source)</label>
+          <div class="select-wrap">
+            <select id="source" name="source" required>
+              <option value="">— City —</option>
+              {% for s in sources %}
+              <option value="{{ s }}">{{ s }}</option>
+              {% endfor %}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+          <span class="field-error" id="err-source"></span>
+        </div>
+
+        <div class="swap-btn-wrap">
+          <button type="button" id="swapBtn" title="Swap cities">⇄</button>
+        </div>
+
+        <div class="field-group">
+          <label for="destination">To (Destination)</label>
+          <div class="select-wrap">
+            <select id="destination" name="destination" required>
+              <option value="">— City —</option>
+              {% for d in destinations %}
+              <option value="{{ d }}">{{ d }}</option>
+              {% endfor %}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+          <span class="field-error" id="err-destination"></span>
+        </div>
+      </div>
+
+      <!-- Row 3: Journey date + Stops -->
+      <div class="field-row">
+        <div class="field-group">
+          <label for="journey_date">Journey Date</label>
+          <input type="date" id="journey_date" name="journey_date" required/>
+          <span class="field-error" id="err-date"></span>
+        </div>
+        <div class="field-group">
+          <label for="stops">Number of Stops</label>
+          <div class="select-wrap">
+            <select id="stops" name="stops">
+              <option value="0">Non-stop</option>
+              <option value="1">1 Stop</option>
+              <option value="2">2 Stops</option>
+              <option value="3">3 Stops</option>
+              <option value="4">4 Stops</option>
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: Dep time + Arrival time -->
+      <div class="field-row">
+        <div class="field-group">
+          <label for="dep_time">Departure Time</label>
+          <input type="time" id="dep_time" name="dep_time" required/>
+          <span class="field-error" id="err-dep"></span>
+        </div>
+        <div class="field-group">
+          <label for="arrival_time">Arrival Time</label>
+          <input type="time" id="arrival_time" name="arrival_time" required/>
+          <span class="field-error" id="err-arr"></span>
+        </div>
+      </div>
+
+      <!-- Duration display (computed) -->
+      <div class="duration-chip" id="durationChip" style="display:none">
+        🕐 Estimated duration: <strong id="durationText">—</strong>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn-predict" id="submitBtn">
+        <span class="btn-text">Predict Price</span>
+        <span class="btn-icon">→</span>
+      </button>
+
+    </form>
+
+    <!-- Loading -->
+    <div class="loading-wrap hidden" id="loadingWrap">
+      <div class="ai-loader">
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+        <div class="loader-ring"></div>
+      </div>
+      <p class="loading-label" id="loadingLabel">Analysing route…</p>
+    </div>
+
+    <!-- Result block -->
+    <div class="result-wrap hidden" id="resultWrap">
+      <div class="result-header">
+        <span class="result-label">Predicted Airfare</span>
+        <button class="copy-btn" id="copyBtn" type="button">⎘ Copy</button>
+      </div>
+      <div class="result-price" id="resultPrice">₹0</div>
+      <div class="result-range" id="resultRange">
+        Range: <span id="rangeLow">—</span> – <span id="rangeHigh">—</span>
+      </div>
+      <div class="result-meta">
+        <div class="meta-chip" id="metaRoute">—</div>
+        <div class="meta-chip" id="metaDate">—</div>
+        <div class="meta-chip" id="metaDuration">—</div>
+      </div>
+      <button type="button" class="btn-reset" id="resetBtn">Search Again</button>
+    </div>
+
+    <!-- Error block -->
+    <div class="error-wrap hidden" id="errorWrap">
+      <span class="error-icon">⚠️</span>
+      <p class="error-msg" id="errorMsg">Something went wrong.</p>
+      <button type="button" class="btn-reset" id="errorResetBtn">Try Again</button>
+    </div>
+
+  </section>
+
+  <!-- ── RIGHT: Stats + Charts ─────────────────────────────── -->
+  <aside class="right-panel">
+
+    <!-- Model Metrics card -->
+    <div class="card metrics-card">
+      <div class="card-header"><h3>Model Performance</h3></div>
+      <div class="metrics-grid">
+        <div class="metric-tile">
+          <span class="metric-val accent">{{ metrics.get('r2', 0.84) }}</span>
+          <span class="metric-label">R² Score</span>
+        </div>
+        <div class="metric-tile">
+          <span class="metric-val">₹{{ "{:,.0f}".format(metrics.get('mae', 1213)) }}</span>
+          <span class="metric-label">Avg Error (MAE)</span>
+        </div>
+        <div class="metric-tile">
+          <span class="metric-val">₹{{ "{:,.0f}".format(metrics.get('rmse', 1860)) }}</span>
+          <span class="metric-label">RMSE</span>
+        </div>
+        <div class="metric-tile">
+          <span class="metric-val">10K+</span>
+          <span class="metric-label">Flights Trained</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Trends chart -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3>Price Trends</h3>
+        <div class="chart-tabs">
+          <button class="tab-btn active" data-type="monthly">Monthly</button>
+          <button class="tab-btn" data-type="airline">By Airline</button>
+          <button class="tab-btn" data-type="route">By Route</button>
+        </div>
+      </div>
+      <div class="chart-filters" id="chartFilters">
+        <select id="filterAirline" style="display:none">
+          <option value="">All Airlines</option>
+          {% for a in airlines %}
+          <option value="{{ a }}">{{ a }}</option>
+          {% endfor %}
+        </select>
+        <select id="filterSource">
+          <option value="">All Sources</option>
+          {% for s in sources %}
+          <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+        <select id="filterDest">
+          <option value="">All Destinations</option>
+          {% for d in destinations %}
+          <option value="{{ d }}">{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="chart-container">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- EDA Insights -->
+    <div class="card insight-card">
+      <div class="card-header"><h3>AI Insights</h3></div>
+      <div class="insights-list">
+        <div class="insight-item">
+          <span class="insight-icon">📈</span>
+          <p>Business class tickets (Jet Airways Business) are <strong>3× more expensive</strong> than economy on average.</p>
+        </div>
+        <div class="insight-item">
+          <span class="insight-icon">🔄</span>
+          <p>Non-stop flights are often <strong>cheaper than 2-stop</strong> routes due to time premium pricing.</p>
+        </div>
+        <div class="insight-item">
+          <span class="insight-icon">📅</span>
+          <p>Prices peak in <strong>May–June</strong> (summer travel) and dip in March–April.</p>
+        </div>
+        <div class="insight-item">
+          <span class="insight-icon">⏰</span>
+          <p>Early morning (5–7 AM) departures tend to have <strong>lower fares</strong> by 8–12%.</p>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</main>
+
+<!-- ══════════════════════════ EDA GALLERY ══════════════════════════ -->
+<section class="eda-section">
+  <div class="eda-header">
+    <h2>Data Analysis Visualizations</h2>
+    <p>Exploratory analysis on 10,682 real Indian flight records</p>
+  </div>
+  <div class="eda-grid">
+    <div class="eda-card" onclick="openModal('{{ url_for('static', filename='plots/price_dist.png') }}','Price Distribution')">
+      <img src="{{ url_for('static', filename='plots/price_dist.png') }}" alt="Price Distribution" loading="lazy"/>
+      <div class="eda-label">Price Distribution</div>
+    </div>
+    <div class="eda-card" onclick="openModal('{{ url_for('static', filename='plots/airline_price.png') }}','Avg Price by Airline')">
+      <img src="{{ url_for('static', filename='plots/airline_price.png') }}" alt="Airline Prices" loading="lazy"/>
+      <div class="eda-label">Avg Price by Airline</div>
+    </div>
+    <div class="eda-card" onclick="openModal('{{ url_for('static', filename='plots/stops_price.png') }}','Stops vs Price')">
+      <img src="{{ url_for('static', filename='plots/stops_price.png') }}" alt="Stops vs Price" loading="lazy"/>
+      <div class="eda-label">Stops vs Price</div>
+    </div>
+    <div class="eda-card" onclick="openModal('{{ url_for('static', filename='plots/route_heatmap.png') }}','Route Price Heatmap')">
+      <img src="{{ url_for('static', filename='plots/route_heatmap.png') }}" alt="Route Heatmap" loading="lazy"/>
+      <div class="eda-label">Route Price Heatmap</div>
+    </div>
+    <div class="eda-card" onclick="openModal('{{ url_for('static', filename='plots/model_comparison.png') }}','Model Comparison')">
+      <img src="{{ url_for('static', filename='plots/model_comparison.png') }}" alt="Model Comparison" loading="lazy"/>
+      <div class="eda-label">Model Comparison</div>
+    </div>
+    <div class="eda-card" onclick="openModal('{{ url_for('static', filename='plots/actual_vs_predicted.png') }}','Actual vs Predicted')">
+      <img src="{{ url_for('static', filename='plots/actual_vs_predicted.png') }}" alt="Actual vs Predicted" loading="lazy"/>
+      <div class="eda-label">Actual vs Predicted</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ FOOTER ══════════════════════════ -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">✈ FlightFare AI</div>
+    <p>Built with Flask · Scikit-learn · Gradient Boosting · Pandas</p>
+    <p style="color:var(--faint); margin-top:4px; font-size:0.78rem;">
+      Final Year Project · Airfare Price Prediction using Machine Learning
+    </p>
+  </div>
+</footer>
+
+<!-- ══════════════════════════ IMAGE MODAL ══════════════════════════ -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <p class="modal-title" id="modalTitle"></p>
+    <img id="modalImg" src="" alt=""/>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

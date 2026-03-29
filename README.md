@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # ✈️ FlightFare AI — Airfare Price Prediction System
 
 > **Machine Learning · Flask · Gradient Boosting · Real Indian Flight Data**
